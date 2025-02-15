@@ -13,7 +13,6 @@ const userInfo = async (req, res) => {
             return res.status(404).json({ error: "User not found." });
         }
 
-        console.log("Profile Picture URL:", user.rows[0].profilepictureurl);
 
 
 

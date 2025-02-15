@@ -16,7 +16,6 @@ const checkLogin = async (req, res) => {
         if (user.rows.length === 0) {
             return res.status(404).json({ error: "User not found" });
         }
-        console.log("Venus", user.rows[0].profilepictureurl);
 
         return res.json({
             isLoggedIn: true,
