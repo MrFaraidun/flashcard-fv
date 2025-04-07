@@ -1,44 +1,132 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { createSet } from "../api/apiSets";
+import { createCard } from "../api/apiCards";
 
 const FlashcardCreate = () => {
-    return (
-        <div className="relative faraidun left-0 right-0 top-0 bottom-0 min-h-screen bg-[#0F172A] flex justify-center items-center">
-            <div className="max-w-lg w-full bg-[#1E293B] text-white rounded-lg shadow-lg p-6">
-                <h1 className="mb-6 text-2xl font-bold text-center">Create a new flashcard set</h1>
+  const [title, setTitle] = useState("");
+  const [flashcards, setFlashcards] = useState([]);
+  const [front, setFront] = useState("");
+  const [back, setBack] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-                {/* Input for Title */}
-                <input
-                    type="text"
-                    placeholder="Enter a title, like 'Biology - Chapter 22: Evolution'"
-                    className="w-full bg-[#334155] text-white placeholder-gray-400 px-4 py-2 rounded mb-4"
-                />
+  // Add flashcard to temporary list
+  const handleAddFlashcard = () => {
+    if (!front || !back) return;
+    setFlashcards([...flashcards, { frontcontent: front, backcontent: back }]);
+    setFront("");
+    setBack("");
+  };
 
-                {/* Textarea for Description */}
-                <textarea
-                    placeholder="Add a description"
-                    className="w-full bg-[#334155] text-white placeholder-gray-400 px-4 py-2 rounded mb-4"
-                ></textarea>
+  // Create set and add flashcards
+  const handleCreateSet = async () => {
+    if (!title) {
+      setError("Title is required.");
+      return;
+    }
 
-                {/* Display Added Flashcards */}
-                <div className="mt-6">
-                    <h2 className="text-lg font-medium">Added Flashcards:</h2>
-                    <p className="text-gray-400">No cards added yet.</p>
-                </div>
+    setLoading(true);
+    setError("");
 
-                <div className="flex gap-4 mt-4">
-                    {/* Button to Create the Flashcard Set */}
-                    <button className="flex-grow px-4 py-2 text-white bg-blue-600 rounded">
-                        Create Set
-                    </button>
-                    <button className="flex-grow px-4 py-2 text-white bg-green-600 rounded">
-                        Create and Practice
-                    </button>
-                </div>
+    try {
+      const response = await createSet(title);
+      console.log("Create Set Response:", response); // Debugging line
 
+      if (response.error) {
+        setError(response.error);
+      } else {
+        const setId = response.setid;
+        console.log("Set ID:", setId); // Check if setId is correctly received
 
-            </div>
+        if (!setId) {
+          throw new Error("Set ID is undefined.");
+        }
+
+        for (const card of flashcards) {
+          await createCard(setId, card.frontcontent, card.backcontent);
+        }
+        navigate("/sets");
+      }
+    } catch (err) {
+      console.error("Error creating set:", err);
+      setError("An error occurred while creating the set.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#0F172A]">
+      <div className="max-w-lg w-full bg-[#1E293B] text-white rounded-lg shadow-lg p-6">
+        <h1 className="mb-6 text-2xl font-bold text-center">
+          Create a new flashcard set
+        </h1>
+        {error && <p className="mb-4 text-center text-red-500">{error}</p>}
+
+        <input
+          type="text"
+          placeholder="Enter set title..."
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full bg-[#334155] text-white px-4 py-2 rounded mb-4"
+        />
+
+        {/* Add Flashcards */}
+        <div className="mb-4">
+          <h2 className="text-lg font-medium">Add Flashcards</h2>
+          <input
+            type="text"
+            placeholder="Front side..."
+            value={front}
+            onChange={(e) => setFront(e.target.value)}
+            className="w-full bg-[#334155] text-white px-4 py-2 rounded mb-2"
+          />
+          <input
+            type="text"
+            placeholder="Back side..."
+            value={back}
+            onChange={(e) => setBack(e.target.value)}
+            className="w-full bg-[#334155] text-white px-4 py-2 rounded mb-2"
+          />
+          <button
+            onClick={handleAddFlashcard}
+            className="w-full px-4 py-2 bg-green-600 rounded"
+          >
+            Add Flashcard
+          </button>
         </div>
-    );
+
+        {/* Show Added Flashcards */}
+        <div className="mt-4">
+          <h2 className="text-lg font-medium">Added Flashcards:</h2>
+          {flashcards.length === 0 ? (
+            <p className="text-gray-400">No cards added yet.</p>
+          ) : (
+            <ul className="pl-4 list-disc">
+              {flashcards.map((card, index) => (
+                <li key={index} className="text-gray-300">
+                  {card.frontcontent} - {card.backcontent}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Create Set Buttons */}
+        <div className="flex gap-4 mt-4">
+          <button
+            onClick={handleCreateSet}
+            className="flex-grow px-4 py-2 text-white bg-blue-600 rounded"
+            disabled={loading}
+          >
+            {loading ? "Creating..." : "Create Set"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default FlashcardCreate;
