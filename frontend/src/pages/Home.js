@@ -347,7 +347,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="w-full px-6 py-24 text-white bg-gradient-to-r from-blue-600 to-blue-800">
         <div className="container mx-auto text-center">
           <h2 className="mb-6 text-3xl font-bold md:text-4xl">

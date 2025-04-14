@@ -21,6 +21,7 @@ const FlashcardCreate = () => {
     setFlashcards((prevFlashcards) => [
       ...prevFlashcards,
       { frontcontent: front, backcontent: back },
+      $,
     ]);
     setFront("");
     setBack("");
