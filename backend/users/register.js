@@ -1,6 +1,8 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const pool = require("../db");
+const crypto = require("crypto");
+const { sendVerificationEmail } = require("../utils/emailSender");
 
 const register = async (req, res) => {
   const { Name, Email, Password } = req.body;
@@ -21,42 +23,39 @@ const register = async (req, res) => {
 
   try {
     const existingUser = await pool.query(
-      "SELECT userid FROM users WHERE email = $1 OR name = $2",
-      [Email, Name]
+      "SELECT userid FROM users WHERE email = $1",
+      [Email]
     );
 
     if (existingUser.rows.length > 0) {
-      return res.status(400).json({ error: "Email or Name already exists." });
+      return res.status(400).json({ error: "Email already exists." });
     }
 
     const hashedPassword = await bcrypt.hash(Password, 10);
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     const result = await pool.query(
-      `INSERT INTO users (name, email, passwordhash) 
-       VALUES ($1, $2, $3) RETURNING userid, email, name`,
-      [Name, Email, hashedPassword]
+      `INSERT INTO users (name, email, passwordhash, verification_token, verification_token_expires, is_verified) 
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING userid, email, name`,
+      [
+        Name,
+        Email,
+        hashedPassword,
+        verificationToken,
+        verificationTokenExpires,
+        false,
+      ]
     );
 
-    // Generate JWT Token
-    const token = jwt.sign(
-      { userId: result.rows[0].userid },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "1d",
-      }
-    );
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    await sendVerificationEmail(Email, Name, verificationToken);
 
     res.status(201).json({
-      message: "Registration successful! Redirecting to profile setup...",
+      message:
+        "Registration successful! Please check your email to verify your account.",
       email: result.rows[0].email,
       name: result.rows[0].name,
+      verified: false,
     });
   } catch (err) {
     console.error("Registration error:", err);

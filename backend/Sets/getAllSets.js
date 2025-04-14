@@ -5,10 +5,21 @@ const getAllSets = async (req, res) => {
     const { userId } = req.user; // Extract userId from token
 
     const sets = await pool.query(
-      "SELECT * FROM sets WHERE userId = $1 ORDER BY createdAt ASC",
+      `
+      SELECT 
+        s.*, 
+        COUNT(c.cardid) AS card_count
+      FROM sets s
+      LEFT JOIN cards c ON c.setid = s.setid
+      WHERE s.userid = $1
+      GROUP BY s.setid
+      ORDER BY s.createdat ASC
+      `,
       [userId]
     );
+
     res.json(sets.rows);
+    console.log(sets.rows);
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ error: "Server error" });

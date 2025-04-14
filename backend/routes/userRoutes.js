@@ -9,13 +9,17 @@ const logout = require("../users/logout");
 const checkLogin = require("../users/checkLogin");
 const authMiddleware = require("../middleware/authMiddleware");
 const { getStreak } = require("../users/streak");
+const verifyEmail = require("../users/verifyEmail");
+const resendVerification = require("../users/resendVerification");
 
-//insert
-
-//post from frontedn to backend
-router.post("/register", register); //              https://localhost:5000/flashcard/register
+// Public routes
+router.post("/register", register);
 router.post("/login", login);
+router.post("/resend-verification", resendVerification);
 
+router.get("/verify-email", verifyEmail);
+
+// Protected routes
 router.post(
   "/profile-setup",
   authMiddleware,
@@ -23,7 +27,6 @@ router.post(
   profileSetup
 );
 
-//put == edit
 router.put(
   "/edit-user-info",
   authMiddleware,

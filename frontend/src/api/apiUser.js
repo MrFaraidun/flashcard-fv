@@ -52,8 +52,6 @@ export const updateStreak = async () => {
   }
 };
 
-// apiUser.js
-
 export const register = async (name, email, password) => {
   try {
     const response = await API.post("/register", {
@@ -61,29 +59,26 @@ export const register = async (name, email, password) => {
       Email: email,
       Password: password,
     });
-
-    window.location = "/ProfileSetup";
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.error || "Registration failed");
   }
 };
 
-// Login user
-export const login = async (Email, password) => {
+export const login = async (email, password) => {
   try {
     const response = await API.post("/login", {
-      Email: password,
+      Email: email,
       Password: password,
     });
-
     return response.data;
   } catch (error) {
+    if (error.response?.data?.needsVerification) {
+      throw new Error("EMAIL_NOT_VERIFIED");
+    }
     throw new Error(error.response?.data?.error || "Login failed");
   }
 };
-
-// Resend verification email
 
 export const checkLoginStatus = async () => {
   try {
@@ -95,5 +90,25 @@ export const checkLoginStatus = async () => {
       error.response?.data || error.message
     );
     return null;
+  }
+};
+
+export const verifyEmail = async (token) => {
+  try {
+    const response = await API.get(`/verify-email?token=${token}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || "Email verification failed");
+  }
+};
+
+export const resendVerificationEmail = async (email) => {
+  try {
+    const response = await API.post("/resend-verification", { email });
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data?.error || "Failed to resend verification email."
+    );
   }
 };

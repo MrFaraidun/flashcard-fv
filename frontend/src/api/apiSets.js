@@ -36,9 +36,9 @@ export const updateSet = async (id, setName) => {
 };
 
 // Delete a Set
-export const deleteSet = async (id) => {
+export const deleteSet = async (setid) => {
   try {
-    const response = await API.delete(`/deleteSet/${id}`);
+    const response = await API.delete(`/deleteSet/${setid}`);
     return response.data;
   } catch (error) {
     console.error("Error deleting set:", error);

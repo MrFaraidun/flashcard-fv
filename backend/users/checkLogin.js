@@ -6,7 +6,6 @@ const checkLogin = async (req, res) => {
   }
 
   try {
-    // Corrected query with lowercase table and column names
     const user = await pool.query(
       "SELECT profilepictureurl ,name,email , purposeofuse,age FROM users WHERE userid = $1",
       [req.user.userId]
@@ -18,7 +17,6 @@ const checkLogin = async (req, res) => {
 
     return res.json({
       isLoggedIn: true,
-      userId: req.user.userId,
       Name: user.rows[0].name,
       Email: user.rows[0].email,
       Age: user.rows[0].age,

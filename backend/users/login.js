@@ -21,33 +21,48 @@ const login = async (req, res) => {
       return res.status(400).json({ error: "Invalid email or password." });
     }
 
+    // Check if email is verified
+    if (!user.rows[0].is_verified) {
+      return res.status(403).json({
+        error:
+          "Email not verified. Please check your email for verification link.",
+        needsVerification: true,
+        email: user.rows[0].email,
+      });
+    }
+
     const validPassword = await bcrypt.compare(
       Password,
       user.rows[0].passwordhash
     );
 
+    console.log("Password match result:", validPassword); // Add this
+
     if (!validPassword) {
       return res.status(400).json({ error: "Invalid email or password." });
     }
 
-    // Generate JWT Token
+    // Add temporary debug logging:
+    console.log("User found:", {
+      id: user.rows[0]?.userid,
+      is_verified: user.rows[0]?.is_verified,
+      hasPassword: !!user.rows[0]?.passwordhash,
+    });
+
     const token = jwt.sign(
       { userId: user.rows[0].userid },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET, // Confirm this exists!
       { expiresIn: "1d" }
     );
+    console.log("Generated token:", token);
 
-    // Determine the profile picture URL
     let profilePictureUrl = user.rows[0].profilepictureurl;
-    if (profilePictureUrl && !profilePictureUrl.startsWith("http")) {
-      profilePictureUrl = `http://localhost:5000${profilePictureUrl}`;
-    }
 
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "Strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.json({

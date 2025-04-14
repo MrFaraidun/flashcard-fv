@@ -9,6 +9,7 @@ const userRoutes = require("./routes/userRoutes");
 const todoRoutes = require("./routes/todoRoutes");
 const SetsRoutes = require("./routes/SetsRoutes");
 const CardsRoutes = require("./routes/CardsRoutes");
+const quizRoutes = require("./routes/quizRoutes");
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use("/flashcard", userRoutes);
 app.use("/flashcard", todoRoutes);
 app.use("/flashcard", SetsRoutes);
 app.use("/flashcard", CardsRoutes);
+app.use("/flashcard", quizRoutes);
 
 const port = process.env.PORT || 5000;
 app.listen(port, () =>

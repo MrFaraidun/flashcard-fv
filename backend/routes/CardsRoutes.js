@@ -15,7 +15,7 @@ router.post("/createCard", authMiddleware, async (req, res) => {
     await createCard(req, res); // Call original function
 
     const userId = req.user.userId; // Get user ID from middleware
-    await updateStreak(userId); 
+    await updateStreak(userId);
   } catch (error) {
     res.status(500).json({ error: "Failed to create todo" });
   }

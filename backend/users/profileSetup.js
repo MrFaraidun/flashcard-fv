@@ -1,4 +1,3 @@
-const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const pool = require("../db");
 
@@ -14,13 +13,12 @@ const upload = multer({ storage });
 
 const profileSetup = async (req, res) => {
   if (!req.user || !req.user.userId) {
-    // Check for req.user.userId
     return res
       .status(401)
       .json({ error: "Unauthorized: User is not logged in." });
   }
 
-  const userId = req.user.userId; // Extract userId from the user object
+  const userId = req.user.userId;
 
   try {
     const { age, purposeOfUse } = req.body;
